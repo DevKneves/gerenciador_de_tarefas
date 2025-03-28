@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 dotenv.config(); // Carregar variáveis de ambiente do arquivo .env
@@ -72,6 +73,9 @@ const verifyToken = (req, res, next) => {
 app.use(express.json());
 app.use(cors());
 
+// Middleware para servir arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
 // Rota para registrar um novo usuário (Cadastro)
 app.post('/register', async (req, res) => {
     const { nome, email, senha } = req.body;
@@ -98,18 +102,30 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
 
-    // Encontrar o usuário no banco de dados
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Usuário não encontrado' });
+    try {
+        // Encontrar o usuário no banco de dados
+        const user = await User.findOne({ email });
+        if (!user) {
+            console.log('Usuário não encontrado:', email); // Log para depuração
+            return res.status(400).json({ message: 'Usuário não encontrado' });
+        }
 
-    // Comparar a senha
-    const isMatch = await bcrypt.compare(senha, user.senha);
-    if (!isMatch) return res.status(400).json({ message: 'Senha inválida' });
+        // Comparar a senha
+        const isMatch = await bcrypt.compare(senha, user.senha);
+        if (!isMatch) {
+            console.log('Senha inválida para o email:', email); // Log para depuração
+            return res.status(400).json({ message: 'Senha inválida' });
+        }
 
-    // Gerar um JWT
-    const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '1h' });
+        // Gerar um JWT
+        const token = jwt.sign({ userId: user._id }, 'secretkey', { expiresIn: '1h' });
+        console.log('Login bem-sucedido para o email:', email); // Log para depuração
 
-    res.json({ token });
+        res.json({ token });
+    } catch (err) {
+        console.error('Erro no login:', err); // Log para depuração
+        res.status(500).json({ message: 'Erro no servidor' });
+    }
 });
 
 // Rota para obter as tarefas de um usuário
@@ -186,6 +202,11 @@ app.delete('/tasks/:id', verifyToken, async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: 'Erro ao mover tarefa para finalizadas' });
     }
+});
+
+// Rota para servir o frontend
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
 });
 
 // Iniciar o servidor
