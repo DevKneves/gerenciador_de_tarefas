@@ -20,7 +20,7 @@ const GerenciadorTarefas = () => {
 
   const loadTasks = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:3000/tasks', {
+    fetch('http://localhost:8080/tasks', {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
