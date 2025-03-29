@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './cadastro.css'; // Importando o CSS específico para o componente
 
 const Cadastro = () => {
   const [nome, setNome] = useState('');
