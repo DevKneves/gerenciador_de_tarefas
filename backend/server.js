@@ -10,14 +10,10 @@ const app = express();
 dotenv.config(); // Carregar variáveis de ambiente do arquivo .env
 
 // Conectar ao MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Conectado ao MongoDB'))
-.catch(err => console.error('Erro ao conectar ao MongoDB:', err));
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('Conectado ao MongoDB'))
+    .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
 
-// Modelos de Usuário e Tarefa
 const userSchema = new mongoose.Schema({
     nome: String,
     email: { type: String, unique: true },
